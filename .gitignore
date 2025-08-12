@@ -1,7 +1,7 @@
 # Node modules
 node_modules/
-client/node_modules/
-server/node_modules/
+backend/node_modules/
+frontend/node_modules/
 
 # Build
 dist/
@@ -9,8 +9,8 @@ build/
 
 # Env
 .env
-client/.env
-server/.env
+frontend/.env
+backend/.env
 
 # Logs
 *.log

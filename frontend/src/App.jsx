@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { openAuthModal, closeAuthModal } from './features/ui/uiSlice';
 
-function App() {
-  const [count, setCount] = useState(0)
+import LandingPage from './pages/LandingPage';
+import AuthModal from './components/auth/AuthModal';
+import MainLayout from './layouts/MainLayout';
+// import PostFeed from './components/PostFeed';
+// import ProfilePage from './pages/ProfilePage'; // Ví dụ trang khác
 
+const App = () => {
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
+  const { isAuthModalOpen } = useSelector((state) => state.ui);
+  const [isGuest, setIsGuest] = useState(false);
+
+  const handleGuestContinue = () => {
+    setIsGuest(true);
+    dispatch(closeAuthModal());
+  };
+
+  // Nếu chưa đăng nhập và chưa phải guest -> Hiển thị Landing Page
+  if (!userInfo && !isGuest) {
+    return (
+      <>
+        <LandingPage
+          onLoginClick={() => dispatch(openAuthModal())}
+          onRegisterClick={() => dispatch(openAuthModal())}
+          onGuestClick={handleGuestContinue}
+        />
+        <AuthModal 
+          isOpen={isAuthModalOpen}
+          onClose={() => dispatch(closeAuthModal())}
+          onGuestClick={handleGuestContinue}
+        />
+      </>
+    );
+  }
+
+  // Nếu đã đăng nhập hoặc là guest -> Hiển thị ứng dụng chính
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Router>
+      <MainLayout>
+        <Routes>
+          <Route path="/" element={<PostFeed />} />
+          <Route path="/profile/:username" element={<ProfilePage />} />
+          {/* Thêm các route khác cho ứng dụng chính ở đây */}
+        </Routes>
+      </MainLayout>
+    </Router>
+  );
+};
 
-export default App
+export default App;
