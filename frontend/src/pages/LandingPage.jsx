@@ -1,13 +1,18 @@
-import React from 'react';
-import FloatingLantern from '../components/floatingLantern';
-import { ArrowRight, Moon } from 'lucide-react';
+import React from "react";
+import FloatingLantern from "../components/floatingLantern";
+import { ArrowRight, Moon } from "lucide-react";
 
 const LandingPage = ({ onLoginClick, onRegisterClick }) => {
   return (
     <div className="bg-background text-foreground relative overflow-x-hidden">
       <div className="absolute inset-0 z-0">
-        <FloatingLantern size="lg" className="top-[10%] left-[5%]" delay={0} />
-        <FloatingLantern size="md" className="top-[20%] right-[10%]" delay={2} />
+        <FloatingLantern size="lg" className="top-20 left-10" delay={0} />
+        <FloatingLantern size="md" className="top-40 right-20" delay={1} />
+        <FloatingLantern size="sm" className="top-60 left-1/4" delay={2} />
+        <FloatingLantern size="md" className="top-32 right-1/3" delay={0.5} />
+        <FloatingLantern size="sm" className="top-80 right-10" delay={1.5} />
+        <FloatingLantern size="lg" className="top-20
+         left-1/2" delay={2.5} />
       </div>
       <main className="relative z-10">
         <section className="min-h-screen flex items-center justify-center text-center px-4">
