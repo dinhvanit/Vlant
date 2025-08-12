@@ -3,7 +3,7 @@ import {Dialog, DialogContent} from '../ui/dialog'
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
-const AuthModal = ({ isOpen, onClose }) => {
+const AuthModal = ({ isOpen, onClose, onGuestClick }) => {
   const [isLoginView, setIsLoginView] = useState(true);
 
   const handleSwitch = () => {
@@ -27,7 +27,10 @@ const AuthModal = ({ isOpen, onClose }) => {
         </div>
         
         {isLoginView ? (
-          <LoginForm onSwitch={handleSwitch} />
+          <LoginForm 
+            onSwitch={handleSwitch} 
+            onGuestClick={onGuestClick} 
+          />
         ) : (
           <RegisterForm onSwitch={handleSwitch} />
         )}

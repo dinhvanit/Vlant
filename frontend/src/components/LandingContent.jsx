@@ -5,8 +5,13 @@ import FloatingLantern from '/FloatingLantern';
 const LandingContent = ({ onLoginClick, onRegisterClick }) => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
-      <FloatingLantern className="top-20 left-10" delay={0} />
-      <FloatingLantern className="top-40 right-10" delay={1.2} />
+      <div className="absolute inset-0 z-0">
+        <FloatingLantern size="lg" className="top-[10%] left-[5%]" delay={0} />
+        <FloatingLantern size="md" className="top-[20%] right-[10%]" delay={2} />
+        <FloatingLantern size="sm" className="top-[60%] left-[15%]" delay={4} />
+        <FloatingLantern size="md" className="top-[70%] right-[25%]" delay={1} />
+        <FloatingLantern size="lg" className="bottom-[5%] right-[5%]" delay={3} />
+      </div>
       
       <h1 className="text-5xl md:text-6xl font-bold text-primary mb-4 glow-effect">Vlant</h1>
       <p className="text-lg text-muted-foreground max-w-xl mb-8">

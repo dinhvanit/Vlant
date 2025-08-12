@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../features/auth/authSlice';
 import { Eye, EyeOff } from 'lucide-react';
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook } from "react-icons/fa";
 
-// Component này nhận prop onSwitch để chuyển sang form đăng ký
-const LoginForm = ({ onSwitch }) => {
+const LoginForm = ({ onSwitch, onGuestClick }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
@@ -34,10 +35,10 @@ const LoginForm = ({ onSwitch }) => {
         {/* Social Logins */}
       <div className="space-y-3 mb-6">
         <button className="w-full h-12 flex items-center justify-center gap-3 rounded-xl bg-[#4285F4] text-white font-semibold hover:bg-[#357ae8] transition-colors">
-          <Google size={20} /> Continue with Google
+          <FcGoogle size={20} /> Continue with Google
         </button>
         <button className="w-full h-12 flex items-center justify-center gap-3 rounded-xl bg-[#1877F2] text-white font-semibold hover:bg-[#166fe5] transition-colors">
-          <Facebook size={20} /> Continue with Facebook
+          <FaFacebook size={20} /> Continue with Facebook
         </button>
       </div>
 
