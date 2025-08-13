@@ -94,4 +94,16 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser };
+// @desc    Logout user / clear cookie
+// @route   POST /api/auth/logout
+// @access  Private (vì chỉ người đăng nhập mới cần logout)
+const logoutUser = asyncHandler(async (req, res) => {
+  // Xóa cookie bằng cách ghi đè nó với một cookie hết hạn
+  res.cookie('jwt', '', {
+    httpOnly: true,
+    expires: new Date(0), // Đặt thời gian hết hạn trong quá khứ
+  });
+  res.status(200).json({ message: 'Logged out successfully' });
+});
+
+export { registerUser, loginUser, logoutUser };
