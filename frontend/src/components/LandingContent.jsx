@@ -13,10 +13,10 @@ const LandingContent = ({ onLoginClick, onRegisterClick }) => {
         Release your anonymous thoughts into the night sky, and connect with others through the warmth of shared feelings.
       </p>
       <div className="flex gap-4">
-        <button onClick={onLoginClick} className="px-8 py-3 rounded-xl bg-primary text-primary-foreground font-bold ...">
+        <button onClick={onLoginClick} className="px-8 py-3 rounded-xl bg-primary text-primary-foreground font-bold">
           Login
         </button>
-        <button onClick={onRegisterClick} className="px-8 py-3 rounded-xl bg-secondary text-secondary-foreground font-bold ...">
+        <button onClick={onRegisterClick} className="px-8 py-3 rounded-xl bg-secondary text-secondary-foreground font-bold">
           Sign Up
         </button>
       </div>

@@ -1,21 +1,17 @@
-import { useSelector, useDispatch } from "react-redux";
-import { closeAuthModal } from "../features/ui/uiSlice";
-import AuthModal from "../components/auth/AuthModal";
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import Sidebar from '../components/Sidebar';
 
 const MainLayout = () => {
-  const { isAuthModalOpen } = useSelector((state) => state.ui);
-  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
 
   return (
-    <div>
-      {/* Sidebar, Header, etc. */}
-      <Outlet />
-
-      {/* Modal xác thực sẽ nằm ở đây */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => dispatch(closeAuthModal())}
-      />
+    <div className="min-h-screen bg-background text-foreground flex">
+      <Sidebar userInfo={userInfo} />
+      <main className="flex-1 ml-64 p-8">
+        <Outlet />
+      </main>
     </div>
   );
 };

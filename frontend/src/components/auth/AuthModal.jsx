@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Dialog, DialogContent} from '../ui/dialog'
+import {Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
@@ -25,12 +25,15 @@ const AuthModal = ({ isOpen, onClose, onGuestClick }) => {
               <span className="text-3xl">🏮</span>
             </div>
         </div>
+
+        <DialogHeader className="text-center mb-4">
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            {isLoginView ? 'Welcome Back' : 'Create Account'}
+          </DialogTitle>
+        </DialogHeader>
         
         {isLoginView ? (
-          <LoginForm 
-            onSwitch={handleSwitch} 
-            onGuestClick={onGuestClick} 
-          />
+          <LoginForm onSwitch={handleSwitch} onGuestClick={onGuestClick} />
         ) : (
           <RegisterForm onSwitch={handleSwitch} />
         )}

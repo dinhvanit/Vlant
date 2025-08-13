@@ -6,8 +6,8 @@ import { openAuthModal, closeAuthModal } from './features/ui/uiSlice';
 import LandingPage from './pages/LandingPage';
 import AuthModal from './components/auth/AuthModal';
 import MainLayout from './layouts/MainLayout';
-// import PostFeed from './components/PostFeed';
-// import ProfilePage from './pages/ProfilePage'; // Ví dụ trang khác
+import PostFeed from './components/PostFeed';
+import ProfilePage from './pages/ProfilePage'; // Ví dụ trang khác
 
 const App = () => {
   console.log('--- App component is RENDERING ---');
