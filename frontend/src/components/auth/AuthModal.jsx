@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from '../ui/dialog'
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
