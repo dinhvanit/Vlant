@@ -1,67 +1,107 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-// import { fetchPosts } from '../features/posts/postSlice';
-import PostCard from './PostCard';
-import { Skeleton } from './ui/skeleton'; // Component skeleton từ shadcn/ui
+import { Heart, MessageCircle } from 'lucide-react';
+import { cn } from '../utils/cn';
+// import { likePost } from '../features/posts/postSlice'; // Sẽ tạo thunk này sau
 
-const PostFeed = () => {
-  // Test giao diện bằng dữ liệu giả
-  // Sau này bạn sẽ thay thế bằng useSelector
-  const posts = [
-    { _id: '1', content: 'Sometimes the smallest step in the right direction ends up being the biggest step of your life.', imageUrl: 'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=800', likes: 128, comments: 12, createdAt: '2 hours ago' },
-    { _id: '2', content: 'Just a random thought floating in the night. What if we are all just stories in the end? Let\'s make it a good one, eh?', likes: 97, comments: 5, createdAt: '5 hours ago' },
-    { _id: '3', content: 'Tonight\'s sky is so clear. Makes you feel both incredibly small and infinitely hopeful at the same time.', imageUrl: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d42e2?w=800', likes: 256, comments: 24, createdAt: '8 hours ago' },
-  ];
-  const loading = false; // Thay đổi thành true để xem hiệu ứng skeleton
-  const error = null; // Gán một chuỗi để xem thông báo lỗi
+const PostCard = ({ post }) => {
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
 
-  // const dispatch = useDispatch();
-  // const { posts, loading, error } = useSelector((state) => state.posts);
+  // State cục bộ để cập nhật UI ngay lập tức khi người dùng like
+  const [isLikedByCurrentUser, setIsLikedByCurrentUser] = useState(
+    userInfo ? post.likes.includes(userInfo._id) : false
+  );
+  const [likeCount, setLikeCount] = useState(post.likeCount || 0);
 
-  // useEffect(() => {
-  //   dispatch(fetchPosts());
-  // }, [dispatch]);
+  const handleLikeClick = () => {
+    //Nếu là Guest, mở modal đăng nhập
+    if (!userInfo) {
+      dispatch(openAuthModal({ type: 'like', postId: post._id }));
+      return;
+    }
 
-  // Hiển thị skeleton khi đang tải
-  if (loading) {
-    return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="space-y-4">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-        </div>
-        <Skeleton className="h-64 w-full rounded-2xl" />
-        <div className="space-y-4">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-      </div>
-    );
-  }
+    // 2. Nếu đã đăng nhập, thực hiện logic like
+    
+    // Cập nhật giao diện ngay lập tức (Optimistic Update)
+    if (isLikedByCurrentUser) {
+      setLikeCount(likeCount - 1);
+    } else {
+      setLikeCount(likeCount + 1);
+    }
+    setIsLikedByCurrentUser(!isLikedByCurrentUser);
+    
+    // Dispatch thunk để cập nhật lên server
+    // dispatch(likePost(post._id));
+  };
+  
+  // Hàm để định dạng thời gian cho dễ đọc (ví dụ)
+  const formatTimeAgo = (dateString) => {
+    // Trong dự án thật, bạn nên dùng thư viện như `date-fns` hoặc `moment`
+    // Đây chỉ là một ví dụ đơn giản
+    if (!dateString) return 'just now';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric',
+    });
+  };
 
-  // Hiển thị lỗi
-  if (error) {
-    return <div className="text-center text-destructive">Error: {error}</div>;
-  }
-
-  // Hiển thị khi không có bài viết
-  if (!posts || posts.length === 0) {
-    return (
-      <div className="text-center text-muted-foreground mt-20">
-        <h2 className="text-xl font-semibold">The sky is quiet tonight...</h2>
-        <p>Be the first to release a lantern and share your thoughts.</p>
-      </div>
-    );
-  }
-
-  // Hiển thị danh sách bài viết
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {posts.map((post) => (
-        <PostCard key={post._id} post={post} />
-      ))}
+    <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl transition-all duration-300 hover:border-primary/50">
+      <div className="p-6">
+        {/* Nội dung bài viết */}
+        <p className="text-foreground leading-relaxed whitespace-pre-wrap mb-4">
+          {post.content}
+        </p>
+
+        {/* Hình ảnh (chỉ hiển thị nếu có) */}
+        {post.imageUrl && (
+          <div className="my-4 rounded-xl overflow-hidden border border-border/50">
+            <img
+              src={post.imageUrl}
+              alt="Post attachment"
+              className="w-full h-auto max-h-[500px] object-cover"
+            />
+          </div>
+        )}
+
+        {/* Khu vực tương tác và thời gian */}
+        <div className="flex items-center justify-between text-muted-foreground pt-4 border-t border-border/50">
+          <div className="flex items-center gap-6">
+            {/* Nút Like */}
+            <button
+              onClick={handleLikeClick}
+              className={cn(
+                "flex items-center gap-2 p-2 rounded-full transition-colors duration-200 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-card",
+                isLikedByCurrentUser ? "text-red-500" : "hover:text-red-500"
+              )}
+              aria-label="Like post"
+            >
+              <Heart 
+                className={cn(
+                  "w-5 h-5 transition-all",
+                  isLikedByCurrentUser && "fill-current"
+                )} 
+              />
+              <span className="text-sm font-medium">{likeCount}</span>
+            </button>
+
+            {/* Nút Comment */}
+            <button 
+              className="flex items-center gap-2 p-2 rounded-full transition-colors duration-200 group hover:text-primary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-card"
+              aria-label="Comment on post"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm font-medium">{post.commentCount || 0}</span>
+            </button>
+          </div>
+          
+          {/* Thời gian đăng */}
+          <span className="text-xs">{formatTimeAgo(post.createdAt)}</span>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default PostFeed;
+export default PostCard;

@@ -1,50 +1,51 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-// import { fetchPosts } from '../features/posts/postSlice'; // Bạn sẽ tạo slice này sau
+import { fetchPosts } from '../features/posts/postSlice'; // Import thunk
 import PostCard from './PostCard';
-import { Skeleton } from './ui/skeleton'; // Component skeleton từ shadcn/ui
+import { Skeleton } from './ui/skeleton';
 
 const PostFeed = () => {
-  // Tạm thời dùng dữ liệu giả để test giao diện
-  // Sau này bạn sẽ thay thế bằng useSelector
-  const posts = [
-    { _id: '1', content: 'Sometimes the smallest step in the right direction ends up being the biggest step of your life.', imageUrl: 'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=800', likes: 128, comments: 12, createdAt: '2 hours ago' },
-    { _id: '2', content: 'Just a random thought floating in the night. What if we are all just stories in the end? Let\'s make it a good one, eh?', likes: 97, comments: 5, createdAt: '5 hours ago' },
-    { _id: '3', content: 'Tonight\'s sky is so clear. Makes you feel both incredibly small and infinitely hopeful at the same time.', imageUrl: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d42e2?w=800', likes: 256, comments: 24, createdAt: '8 hours ago' },
-  ];
-  const loading = false; // Thay đổi thành true để xem hiệu ứng skeleton
-  const error = null; // Gán một chuỗi để xem thông báo lỗi
+  const dispatch = useDispatch();
+  
+  // Lấy state từ postSlice trong Redux store
+  const { posts, loading, error } = useSelector((state) => state.posts);
 
-  // const dispatch = useDispatch();
-  // const { posts, loading, error } = useSelector((state) => state.posts);
+  // Gọi API để lấy bài viết khi component được render lần đầu
+  useEffect(() => {
+    dispatch(fetchPosts());
+  }, [dispatch]); // Dependency array [dispatch] đảm bảo nó chỉ chạy 1 lần
 
-  // useEffect(() => {
-  //   dispatch(fetchPosts());
-  // }, [dispatch]);
-
-  // Hiển thị skeleton khi đang tải
+  // 1. Hiển thị skeleton khi đang tải
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="space-y-4">
+      <div className="max-w-2xl mx-auto space-y-8">
+        {/* Skeleton cho một PostCard */}
+        <div className="bg-card/50 p-6 rounded-2xl space-y-4">
           <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-[90%]" />
+          <Skeleton className="h-64 w-full rounded-xl mt-4" />
         </div>
-        <Skeleton className="h-64 w-full rounded-2xl" />
-        <div className="space-y-4">
+        {/* Skeleton thứ hai */}
+        <div className="bg-card/50 p-6 rounded-2xl space-y-4">
           <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-4/5" />
         </div>
       </div>
     );
   }
 
-  // Hiển thị lỗi
+  // 2. Hiển thị lỗi nếu có
   if (error) {
-    return <div className="text-center text-destructive">Error: {error}</div>;
+    return (
+        <div className="text-center text-destructive mt-20">
+            <h2 className="text-xl font-semibold">Oops! Something went wrong.</h2>
+            <p>Could not load the lanterns. Please try again later.</p>
+            <p className="text-sm mt-2">Error: {error}</p>
+        </div>
+    );
   }
 
-  // Hiển thị khi không có bài viết
+  // 3. Hiển thị khi không có bài viết
   if (!posts || posts.length === 0) {
     return (
       <div className="text-center text-muted-foreground mt-20">
@@ -54,7 +55,7 @@ const PostFeed = () => {
     );
   }
 
-  // Hiển thị danh sách bài viết
+  // 4. Hiển thị danh sách bài viết từ API
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {posts.map((post) => (

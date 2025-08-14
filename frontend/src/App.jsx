@@ -7,18 +7,11 @@ import LandingPage from './pages/LandingPage';
 import AuthModal from './components/auth/AuthModal';
 import MainLayout from './layouts/MainLayout';
 import PostFeed from './components/PostFeed';
-import ProfilePage from './pages/ProfilePage'; // Ví dụ trang khác
+import ProfilePage from './pages/ProfilePage';
 
 const App = () => {
-  console.log('--- App component is RENDERING ---');
-
   const dispatch = useDispatch();
-  const { userInfo } = useSelector((state) => {
-    console.log('Reading from Redux store. UserInfo is:', state.auth.userInfo); // 2. Kiểm tra state từ Redux
-    return state.auth;
-  });
-
-
+  const { userInfo } = useSelector((state) => state.auth);
   const { isAuthModalOpen } = useSelector((state) => state.ui);
   const [isGuest, setIsGuest] = useState(false);
 
@@ -29,13 +22,11 @@ const App = () => {
 
   // Nếu chưa đăng nhập và chưa phải guest -> Hiển thị Landing Page
   if (!userInfo && !isGuest) {
-    console.log('Condition is TRUE: Rendering LandingPage');
     return (
       <>
         <LandingPage
           onLoginClick={() => dispatch(openAuthModal())}
           onRegisterClick={() => dispatch(openAuthModal())}
-          onGuestClick={handleGuestContinue}
         />
         <AuthModal 
           isOpen={isAuthModalOpen}
@@ -46,16 +37,22 @@ const App = () => {
     );
   }
 
-
-  console.log('Condition is FALSE: Rendering Main App'); 
-  // Nếu đã đăng nhập hoặc là guest -> Hiển thị ứng dụng chính
+  // Nếu đã đăng nhập hoặc là guest -> Hiển thị ứng dụng chính với cấu trúc Route lồng nhau
   return (
-    <MainLayout>
-      <Routes>
-        <Route path="/" element={<PostFeed />} />
-        <Route path="/profile/:username" element={<ProfilePage />} />
-      </Routes>
-    </MainLayout>
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        {/* Router render vào Outlet như ổ cắm */}
+        
+        <Route index element={<PostFeed />} />
+        
+        <Route path="profile/:username" element={<ProfilePage />} />
+
+        {/* <Route path="messages" element={<MessagesPage />} /> */}
+      </Route>
+
+      {/* Bạn có thể thêm các route không dùng MainLayout ở đây nếu cần */}
+      {/* Ví dụ: <Route path="/settings" element={<SettingsPage />} /> */}
+    </Routes>
   );
 };
 

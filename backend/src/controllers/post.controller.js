@@ -12,4 +12,26 @@ const getPosts = asyncHandler(async (req, res) => {
   res.status(200).json(posts);
 });
 
-export { getPosts };
+// @desc    Tạo một bài viết mới
+// @route   POST /api/posts
+// @access  Private (được bảo vệ bởi middleware 'protect')
+const createPost = asyncHandler(async (req, res) => {
+  const { content, imageUrl } = req.body;
+
+  if (!content) {
+    res.status(400);
+    throw new Error('Content is required to create a post.');
+  }
+
+  const post = await Post.create({
+    content,
+    imageUrl: imageUrl || '',
+    author: req.user._id, // req.user được cung cấp bởi middleware 'protect'
+  });
+  
+  // Trả về bài viết vừa tạo
+  res.status(201).json(post);
+});
+
+
+export { getPosts, createPost };

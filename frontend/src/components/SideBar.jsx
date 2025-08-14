@@ -1,26 +1,41 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, MessageCircle, Bell, User, Plus, LogOut } from 'lucide-react';
-import { Button } from './ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { logout } from '../features/auth/authSlice'; // Bạn sẽ cần action này
-import { useDispatch } from 'react-redux';
+import React from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Home, MessageCircle, Bell, User, Plus, LogOut } from "lucide-react";
+import { Button } from "./ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { logout } from "../features/auth/authSlice"; // Bạn sẽ cần action này
+import { useDispatch } from "react-redux";
 
-const Sidebar = ({ userInfo }) => {
+const Sidebar = ({ userInfo, onOpenCreateModal }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     dispatch(logout()); // Gọi action logout
-    navigate('/'); // Điều hướng về trang landing
+    navigate("/"); // Điều hướng về trang landing
     window.location.reload(); // Tải lại trang để reset hoàn toàn state
   };
 
   const navItems = [
-    { id: 'home', label: 'Home', icon: Home, path: '/' },
-    { id: 'messages', label: 'Messages', icon: MessageCircle, path: '/messages' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, path: '/notifications' },
-    { id: 'profile', label: 'Profile', icon: User, path: `/profile/${userInfo?.username}` },
+    { id: "home", label: "Home", icon: Home, path: "/" },
+    {
+      id: "messages",
+      label: "Messages",
+      icon: MessageCircle,
+      path: "/messages",
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: Bell,
+      path: "/notifications",
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: User,
+      path: `/profile/${userInfo?.username}`,
+    },
   ];
 
   return (
@@ -37,7 +52,10 @@ const Sidebar = ({ userInfo }) => {
 
       {/* Nút Tạo Lồng Đèn */}
       <div className="px-2 mb-4">
-        <Button className="w-full h-12 rounded-2xl glow-effect flex items-center gap-2">
+        <Button
+          onClick={onOpenCreateModal}
+          className="w-full h-12 rounded-2xl glow-effect flex items-center gap-2"
+        >
           <Plus className="w-5 h-5" />
           Create Lantern
         </Button>
@@ -51,12 +69,13 @@ const Sidebar = ({ userInfo }) => {
             <NavLink
               key={item.id}
               to={item.path}
-              // NavLink tự động thêm class "active" khi URL khớp
               className={({ isActive }) =>
                 `w-full justify-start gap-3 h-12 rounded-2xl flex items-center px-4 transition-all duration-200 text-lg
-                ${isActive
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'text-foreground hover:text-primary hover:bg-primary/10'}`
+                ${
+                  isActive
+                    ? "bg-primary/20 text-primary border border-primary/30"
+                    : "text-foreground hover:text-primary hover:bg-primary/10"
+                }`
               }
             >
               <Icon className="w-6 h-6" />
@@ -76,7 +95,12 @@ const Sidebar = ({ userInfo }) => {
           <div className="flex-1 min-w-0">
             <p className="font-semibold truncate">{userInfo?.username}</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleLogout} className="rounded-full">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="rounded-full"
+          >
             <LogOut className="w-5 h-5" />
           </Button>
         </div>
