@@ -1,5 +1,5 @@
 import React from "react";
-import FloatingLantern from "../components/floatingLantern";
+import FloatingLantern from "../components/FloatingLantern";
 import { ArrowRight, Moon } from "lucide-react";
 
 const LandingPage = ({ onLoginClick, onRegisterClick }) => {

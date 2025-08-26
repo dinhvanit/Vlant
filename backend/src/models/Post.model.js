@@ -1,36 +1,45 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema(
   {
+    title: {
+      type: String,
+      trim: true,
+      maxlength: [100, "Title cannot be more than 100 characters."],
+    },
     author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Tham chiếu đến User model
+      ref: "User", // Tham chiếu đến User model
       required: true,
     },
     content: {
       type: String,
-      required: [true, 'Post content is required.'],
+      required: [true, "Post content is required."],
       trim: true,
-      maxlength: [2000, 'Post content cannot be more than 2000 characters.'],
+      maxlength: [2000, "Post content cannot be more than 2000 characters."],
     },
     imageUrl: {
       type: String,
-      default: '',
+      default: "",
     },
     // Chúng ta sẽ lưu danh sách những người đã like
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
       },
     ],
     // Tạm thời để trống, sẽ phát triển sau
     comments: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Comment',
+        ref: "Comment",
       },
     ],
+    isAnonymous: {
+      type: Boolean,
+      default: true, // Mặc định là ẩn danh
+    },
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
@@ -40,16 +49,15 @@ const postSchema = new mongoose.Schema(
 );
 
 // Tạo một trường ảo 'likeCount' để dễ dàng lấy số lượt thích
-postSchema.virtual('likeCount').get(function() {
+postSchema.virtual("likeCount").get(function () {
   return this.likes.length;
 });
 
 // Tạo một trường ảo 'commentCount'
-postSchema.virtual('commentCount').get(function() {
+postSchema.virtual("commentCount").get(function () {
   return this.comments.length;
 });
 
-
-const Post = mongoose.model('Post', postSchema);
+const Post = mongoose.model("Post", postSchema);
 
 export default Post;
