@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Post from '../models/Post.model.js';
-import User from '../models/User.model.js'; 
+import User from '../models/User.model.js';
+import Comment from '../models/Comment.model.js';
 
 /**
  * @desc    Helper function to format post data before sending to client.
@@ -94,5 +95,86 @@ const createPost = asyncHandler(async (req, res) => {
 });
 
 
+// @desc    Like hoặc Unlike một bài viết
+// @route   PUT /api/posts/:id/like
+// @access  Private
+const likePost = asyncHandler(async (req, res) => {
+  const post = await Post.findById(req.params.id);
+
+  if (!post) {
+    res.status(404);
+    throw new Error('Post not found');
+  }
+
+  const userId = req.user._id;
+
+  const hasLiked = post.likes.includes(userId);
+
+  if (hasLiked) {
+    post.likes.pull(userId);
+  } else {
+    post.likes.push(userId);
+  }
+
+  // Lưu lại thay đổi vào database
+  await post.save();
+  
+  // Trả về bài viết đã được cập nhật
+  const updatedPost = await Post.findById(post._id).populate('author', 'username avatar');
+  res.status(200).json(formatPosts(updatedPost));
+});
+
+// @desc    Thêm một bình luận mới vào bài viết
+// @route   POST /api/posts/:id/comments
+// @access  Private
+const addComment = asyncHandler(async (req, res) => {
+  const { content, isAnonymous } = req.body;
+  const post = await Post.findById(req.params.id);
+
+  if (!post) {
+    res.status(404);
+    throw new Error('Post not found');
+  }
+
+  const comment = await Comment.create({
+    content,
+    isAnonymous: !!isAnonymous,
+    post: req.params.id,
+    author: req.user._id,
+  });
+
+  // Thêm ID của bình luận mới vào mảng 'comments' của bài viết
+  post.comments.push(comment._id);
+  await post.save();
+  
+  const newComment = await Comment.findById(comment._id).populate('author', 'username avatar');
+  
+  res.status(201).json(newComment);
+});
+
+// @desc    Lấy tất cả bình luận của một bài viết
+// @route   GET /api/posts/:id/comments
+// @access  Public
+const getCommentsForPost = asyncHandler(async (req, res) => {
+  const comments = await Comment.find({ post: req.params.id })
+    .sort({ createdAt: -1 })
+    .populate('author', 'username avatar');
+  
+  const formattedComments = comments.map(c => {
+    const commentObject = c.toObject();
+    return {
+      _id: commentObject._id,
+      content: commentObject.content,
+      isAnonymous: commentObject.isAnonymous,
+      createdAt: commentObject.createdAt,
+      authorId: commentObject.author._id,
+      authorUsername: c.isAnonymous ? `Wanderer #${c.author._id.toString().slice(-4)}` : c.author.username,
+      authorAvatar: c.isAnonymous ? null : c.author.avatar,
+    };
+  });
+  
+  res.status(200).json(formattedComments);
+});
+
 // Export các hàm
-export { getPosts, createPost };
+export { getPosts, createPost, likePost, addComment, getCommentsForPost};

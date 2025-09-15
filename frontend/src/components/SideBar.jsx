@@ -1,6 +1,14 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, MessageCircle, Bell, User, Plus, LogOut } from "lucide-react";
+import {
+  Home,
+  MessageCircle,
+  Bell,
+  User,
+  Plus,
+  LogOut,
+  Search,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { logout } from "../features/auth/authSlice"; // Bạn sẽ cần action này
@@ -23,6 +31,11 @@ const Sidebar = ({ userInfo, onOpenCreateModal }) => {
       label: "Messages",
       icon: MessageCircle,
       path: "/messages",
+    },
+    { id: "explore", 
+      label: "Explore", 
+      icon: Search, 
+      path: "/explore" 
     },
     {
       id: "notifications",
