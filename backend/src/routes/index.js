@@ -2,6 +2,7 @@ import express from 'express';
 import authRoutes from './auth.routes.js';
 import postRoutes from './post.routes.js'; 
 import userRoutes from './user.routes.js'; 
+import notificationRoutes from './notification.routes.js'
 
 const router = express.Router();
 
@@ -13,6 +14,7 @@ router.get('/test', (req, res) => {
 // Gắn các router con vào
 router.use('/auth', authRoutes);
 router.use('/posts', postRoutes);
-router.use('/users', userRoutes); 
+router.use('/users', userRoutes);
+router.use('/notifications', notificationRoutes); 
 
 export default router;

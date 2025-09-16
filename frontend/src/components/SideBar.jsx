@@ -13,6 +13,7 @@ import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { logout } from "../features/auth/authSlice"; // Bạn sẽ cần action này
 import { useDispatch } from "react-redux";
+import Notifications from './Notifications';
 
 const Sidebar = ({ userInfo, onOpenCreateModal }) => {
   const dispatch = useDispatch();
