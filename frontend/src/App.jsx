@@ -9,6 +9,7 @@ import MainLayout from './layouts/MainLayout';
 import PostFeed from './components/PostFeed';
 import ProfilePage from './pages/ProfilePage';
 import ExplorePage from './pages/ExplorePage';
+import NotificationsPage from './pages/NotificationsPage';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -48,6 +49,7 @@ const App = () => {
         
         <Route path="explore" element={<ExplorePage />} />
         <Route path="profile/:username" element={<ProfilePage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
 
         {/* <Route path="messages" element={<MessagesPage />} /> */}
       </Route>

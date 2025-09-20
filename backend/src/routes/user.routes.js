@@ -6,7 +6,8 @@ import {
     handleFriendRequest,
     unfriendUser,
     searchUsers,
-    getFriendSuggestions
+    getFriendSuggestions,
+    getFriendRequests
 } from '../controllers/user.controller.js';
 
 const router = express.Router();
@@ -15,6 +16,8 @@ router.use(protect);
 
 router.get('/search/users', searchUsers);
 router.get('/suggestions/all', getFriendSuggestions);
+
+router.get('/requests/received', getFriendRequests);
 
 // --- CÁC ROUTE ĐỘNG VỚI ID/USERNAME ---
 router.route('/request/:senderId')

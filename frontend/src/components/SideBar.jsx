@@ -109,6 +109,7 @@ const Sidebar = ({ userInfo, onOpenCreateModal }) => {
           <div className="flex-1 min-w-0">
             <p className="font-semibold truncate">{userInfo?.username}</p>
           </div>
+          <Notifications />
           <Button
             variant="ghost"
             size="icon"

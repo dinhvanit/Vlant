@@ -48,24 +48,24 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @route   POST /api/users/request/:userId
 // @access  Private
 const sendFriendRequest = asyncHandler(async (req, res) => {
-  const recipientId = req.params.userId;
+  // SỬA LỖI Ở ĐÂY:
+  // Đọc đúng tên tham số từ route. Về mặt logic, đây là ID của người NHẬN.
+  const recipientId = req.params.senderId; 
   const senderId = req.user._id;
 
-  // Không thể tự kết bạn
   if (senderId.equals(recipientId)) {
     res.status(400);
     throw new Error("You cannot send a friend request to yourself.");
   }
-
+  
   const recipient = await User.findById(recipientId);
   const sender = await User.findById(senderId);
-
+  
   if (!recipient) {
     res.status(404);
     throw new Error("Recipient user not found.");
   }
 
-  // Kiểm tra xem đã là bạn bè hoặc đã gửi/nhận request chưa
   if (sender.friends.includes(recipientId)) {
     res.status(400);
     throw new Error("You are already friends.");
@@ -76,12 +76,9 @@ const sendFriendRequest = asyncHandler(async (req, res) => {
   }
   if (sender.friendRequestsReceived.includes(recipientId)) {
     res.status(400);
-    throw new Error(
-      "This user has already sent you a friend request. Please respond to it."
-    );
+    throw new Error("This user has already sent you a friend request. Please respond to it.");
   }
-
-  // Cập nhật cả hai phía
+  
   sender.friendRequestsSent.push(recipientId);
   recipient.friendRequestsReceived.push(senderId);
 
@@ -209,6 +206,23 @@ const getFriendSuggestions = asyncHandler(async (req, res) => {
   res.json(suggestions);
 });
 
+// @desc    Lấy danh sách các lời mời kết bạn đã nhận
+// @route   GET /api/users/requests/received
+// @access  Private
+const getFriendRequests = asyncHandler(async (req, res) => {
+  const currentUser = await User.findById(req.user._id).populate({
+    path: 'friendRequestsReceived',
+    select: 'username avatar bio' // Populate đầy đủ thông tin người gửi
+  });
+
+  if (!currentUser) {
+    res.status(404);
+    throw new Error('User not found.');
+  }
+  
+  res.json(currentUser.friendRequestsReceived);
+});
+
 export {
   getUserProfile,
   sendFriendRequest,
@@ -216,4 +230,5 @@ export {
   unfriendUser,
   searchUsers,
   getFriendSuggestions,
+  getFriendRequests,
 };

@@ -5,6 +5,8 @@ const initialState = {
   profile: null, // Lưu thông tin profile đang xem
   status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
+  requests: [],
+  requestsStatus: 'idle',
 };
 
 // --- Async Thunks ---
@@ -25,14 +27,10 @@ export const fetchUserProfile = createAsyncThunk(
 // Thunk để gửi lời mời kết bạn
 export const sendFriendRequest = createAsyncThunk(
   "user/sendFriendRequest",
-  async (userId, { dispatch, rejectWithValue }) => {
+  async ({ userId, username }, { dispatch, rejectWithValue }) => {
     try {
       await api.post(`/users/request/${userId}`);
-      // Sau khi gửi request thành công, ta fetch lại profile để cập nhật friendStatus
-      // action.meta.arg chính là userId mà chúng ta đã truyền vào
-      const username = action.meta.arg.username; // Cần truyền username để fetch lại
-      dispatch(fetchUserProfile(username));
-      return userId;
+      return { userId };
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Could not send request."
@@ -68,6 +66,19 @@ export const unfriend = createAsyncThunk(
   }
 );
 
+// THUNK để tìm các lời mời kết bạn
+export const fetchFriendRequests = createAsyncThunk(
+  'user/fetchFriendRequests',
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get('/users/requests/received');
+      return data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
 // --- Slice Definition ---
 
 export const userSlice = createSlice({
@@ -80,6 +91,10 @@ export const userSlice = createSlice({
       state.status = "idle";
       state.error = null;
     },
+
+    removeRequest: (state, action) => {
+      state.requests = state.requests.filter(req => req._id !== action.payload);
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -97,12 +112,13 @@ export const userSlice = createSlice({
         state.error = action.payload;
       })
       // Xử lý sendFriendRequest
-      .addCase(sendFriendRequest.fulfilled, (state) => {
-        // Cập nhật ngay lập tức trạng thái trên UI mà không cần chờ fetchUserProfile
-        if (state.profile) {
+      .addCase(sendFriendRequest.fulfilled, (state, action) => {
+        // Cập nhật ngay lập tức friendStatus nếu profile đang xem khớp với người vừa gửi request
+        if (state.profile && state.profile._id === action.payload.userId) {
           state.profile.friendStatus = "request_sent";
         }
       })
+
 
       .addCase(handleFriendRequest.fulfilled, (state, action) => {
         if (state.profile) {
@@ -114,9 +130,20 @@ export const userSlice = createSlice({
         if (state.profile) {
           state.profile.friendStatus = 'not_friends';
         }
+      })
+
+      .addCase(fetchFriendRequests.pending, (state) => {
+        state.requestsStatus = 'loading';
+      })
+      .addCase(fetchFriendRequests.fulfilled, (state, action) => {
+        state.requestsStatus = 'succeeded';
+        state.requests = action.payload;
+      })
+      .addCase(fetchFriendRequests.rejected, (state) => {
+        state.requestsStatus = 'failed';
       });
   },
 });
 
-export const { clearProfile } = userSlice.actions;
+export const { clearProfile, removeRequest } = userSlice.actions;
 export default userSlice.reducer;
