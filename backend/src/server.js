@@ -46,12 +46,12 @@ app.use(morgan('dev')); // Để log các request HTTP
 
 // --- Xử lý Socket.IO ---
 // Gọi hàm xử lý socket và lấy ra các hàm tiện ích
-const { sendNotification } = socketHandler(io);
+const { sendNotification, sendMessageRealtime } = socketHandler(io);
 
 // Gán hàm tiện ích vào app.locals để các controller có thể truy cập
 // thông qua req.app.locals.sendNotification
 app.locals.sendNotification = sendNotification;
-
+app.locals.sendMessageRealtime = sendMessageRealtime;
 
 // --- Routes ---
 app.use('/api', mainRouter);

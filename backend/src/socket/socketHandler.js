@@ -36,14 +36,17 @@ const socketHandler = (io) => {
       io.emit('getUsers', onlineUsers);
     });
     
-    // Bạn có thể thêm các event listener khác ở đây
-    // Ví dụ:
-    // socket.on('sendMessage', ({ senderId, receiverId, text }) => {
-    //   const user = getUser(receiverId);
-    //   if (user) {
-    //     io.to(user.socketId).emit('getMessage', { senderId, text });
-    //   }
-    // });
+    socket.on('sendMessage', ({ senderId, receiverId, content }) => {
+      const receiver = getUser(receiverId);
+      if (receiver) {
+        // Gửi sự kiện 'newMessage' đến người nhận
+        io.to(receiver.socketId).emit('newMessage', {
+          senderId,
+          content,
+          createdAt: new Date().toISOString() // Gửi kèm thời gian
+        });
+      }
+    });
   });
   
   // Trả về một hàm tiện ích để có thể gửi sự kiện từ controller
@@ -54,7 +57,14 @@ const socketHandler = (io) => {
     }
   };
 
-  return { sendNotification };
+  const sendMessageRealtime = (receiverId, message) => {
+    const user = getUser(receiverId);
+    if (user) {
+      io.to(user.socketId).emit('newMessage', message);
+    }
+  };
+
+  return { sendNotification, sendMessageRealtime };
 };
 
 export default socketHandler;

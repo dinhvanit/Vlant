@@ -10,6 +10,7 @@ import PostFeed from './components/PostFeed';
 import ProfilePage from './pages/ProfilePage';
 import ExplorePage from './pages/ExplorePage';
 import NotificationsPage from './pages/NotificationsPage';
+import MessengerPage from './pages/MessengerPage';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -51,7 +52,7 @@ const App = () => {
         <Route path="profile/:username" element={<ProfilePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
 
-        {/* <Route path="messages" element={<MessagesPage />} /> */}
+        <Route path="messages" element={<MessengerPage />} />
       </Route>
       {/* Ví dụ: <Route path="/settings" element={<SettingsPage />} /> */}
     </Routes>
