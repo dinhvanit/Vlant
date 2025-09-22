@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import Post from '../models/Post.model.js';
 import User from '../models/User.model.js';
 import Comment from '../models/Comment.model.js';
+import Notification from '../models/Notification.model.js';
 
 /**
  * @desc    Helper function to format post data before sending to client.
@@ -116,6 +117,19 @@ const likePost = asyncHandler(async (req, res) => {
     post.likes.push(userId);
   }
 
+  if (post.author.toString() !== userId.toString()) {
+      const notification = await Notification.create({
+        recipient: post.author,
+        sender: userId,
+        type: 'like',
+        post: post._id,
+      });
+      await notification.populate('sender', 'username avatar');
+      
+      const sendNotification = req.app.locals.sendNotification;
+      sendNotification(post.author.toString(), notification);
+    }
+
   // Lưu lại thay đổi vào database
   await post.save();
   
@@ -145,6 +159,20 @@ const addComment = asyncHandler(async (req, res) => {
 
   // Thêm ID của bình luận mới vào mảng 'comments' của bài viết
   post.comments.push(comment._id);
+
+  if (post.author.toString() !== req.user._id.toString()) {
+      const notification = await Notification.create({
+          recipient: post.author,
+          sender: req.user._id,
+          type: 'comment',
+          post: post._id,
+      });
+      await notification.populate('sender', 'username avatar');
+      
+      const sendNotification = req.app.locals.sendNotification;
+      sendNotification(post.author.toString(), notification);
+  }
+
   await post.save();
   
   const newComment = await Comment.findById(comment._id).populate('author', 'username avatar');

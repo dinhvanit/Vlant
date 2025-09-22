@@ -3,6 +3,7 @@ import authReducer from "../features/auth/authSlice";
 import uiReducer from "../features/ui/uiSlice";
 import postReducer from "../features/posts/postSlice";
 import userReducer from "../features/users/userSlice";
+import notificationReducer from "../features/notification/notificationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export const store = configureStore({
     ui: uiReducer,
     posts: postReducer,
     user: userReducer,
+    notifications: notificationReducer,
   },
 });
