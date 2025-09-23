@@ -7,7 +7,8 @@ import {
     unfriendUser,
     searchUsers,
     getFriendSuggestions,
-    getFriendRequests
+    getFriendRequests,
+    getFriends
 } from '../controllers/user.controller.js';
 
 const router = express.Router();
@@ -25,6 +26,8 @@ router.route('/request/:senderId')
   .put(handleFriendRequest);
 
 router.delete('/friends/:friendId', unfriendUser);
+
+router.get('/:userId/friends', getFriends);
 
 // Route động nhất (bắt được nhiều thứ nhất) phải đặt cuối cùng
 router.get('/:username', getUserProfile);

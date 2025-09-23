@@ -51,7 +51,6 @@ const App = () => {
         <Route path="explore" element={<ExplorePage />} />
         <Route path="profile/:username" element={<ProfilePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
-
         <Route path="messages" element={<MessengerPage />} />
       </Route>
       {/* Ví dụ: <Route path="/settings" element={<SettingsPage />} /> */}

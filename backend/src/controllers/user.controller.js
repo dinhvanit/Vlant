@@ -223,6 +223,23 @@ const getFriendRequests = asyncHandler(async (req, res) => {
   res.json(currentUser.friendRequestsReceived);
 });
 
+// @desc    Lấy danh sách bạn bè chi tiết của một người dùng
+// @route   GET /api/users/:userId/friends
+// @access  Private
+const getFriends = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.userId).populate({
+    path: 'friends',
+    select: 'username avatar bio' // Lấy các thông tin cần thiết của bạn bè
+  });
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  res.json(user.friends);
+});
+
 export {
   getUserProfile,
   sendFriendRequest,
@@ -231,4 +248,5 @@ export {
   searchUsers,
   getFriendSuggestions,
   getFriendRequests,
+  getFriends,
 };

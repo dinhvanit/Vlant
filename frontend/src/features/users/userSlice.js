@@ -7,6 +7,8 @@ const initialState = {
   error: null,
   requests: [],
   requestsStatus: 'idle',
+  friends: [],
+  friendsStatus: 'idle',
 };
 
 // --- Async Thunks ---
@@ -79,6 +81,18 @@ export const fetchFriendRequests = createAsyncThunk(
   }
 );
 
+export const fetchFriends = createAsyncThunk(
+  'user/fetchFriends',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(`/users/${userId}/friends`);
+      return data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
 // --- Slice Definition ---
 
 export const userSlice = createSlice({
@@ -90,6 +104,8 @@ export const userSlice = createSlice({
       state.profile = null;
       state.status = "idle";
       state.error = null;
+      state.friends = [];
+      state.friendsStatus = 'idle';
     },
 
     removeRequest: (state, action) => {
@@ -141,6 +157,17 @@ export const userSlice = createSlice({
       })
       .addCase(fetchFriendRequests.rejected, (state) => {
         state.requestsStatus = 'failed';
+      })
+
+      .addCase(fetchFriends.pending, (state) => {
+        state.friendsStatus = 'loading';
+      })
+      .addCase(fetchFriends.fulfilled, (state, action) => {
+        state.friendsStatus = 'succeeded';
+        state.friends = action.payload;
+      })
+      .addCase(fetchFriends.rejected, (state) => {
+        state.friendsStatus = 'failed';
       });
   },
 });
