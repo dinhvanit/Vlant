@@ -46,6 +46,17 @@ const chatSlice = createSlice({
     clearMessages: (state) => {
       state.messages = [];
       state.messagesStatus = 'idle';
+    },
+    addOrUpdateConversation: (state, action) => {
+        const newConversation = action.payload;
+        const index = state.conversations.findIndex(c => c._id === newConversation._id);
+        if (index !== -1) {
+            // Nếu đã có, cập nhật nó (ví dụ khi có tin nhắn mới)
+            state.conversations[index] = newConversation;
+        } else {
+            // Nếu chưa có, thêm vào đầu danh sách
+            state.conversations.unshift(newConversation);
+        }
     }
   },
   extraReducers: (builder) => {
@@ -75,5 +86,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addMessage, clearMessages } = chatSlice.actions;
+export const { addMessage, clearMessages, addOrUpdateConversation } = chatSlice.actions;
 export default chatSlice.reducer;

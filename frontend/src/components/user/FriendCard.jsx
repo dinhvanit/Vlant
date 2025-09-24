@@ -21,8 +21,7 @@ const FriendCard = ({ friend, index }) => {
         </Avatar>
         <div className="min-w-0">
           <p className="font-semibold text-sm truncate w-full">{friend.username}</p>
-          {/* Có thể thêm bio ngắn ở đây nếu muốn */}
-          {/* <p className="text-xs text-muted-foreground truncate">{friend.bio}</p> */}
+          <p className="text-xs text-muted-foreground truncate">{friend.bio}</p>
         </div>
       </Link>
     </motion.div>

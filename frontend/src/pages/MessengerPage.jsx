@@ -6,6 +6,7 @@ import {
   fetchConversations,
   fetchMessages,
   addMessage,
+  addOrUpdateConversation,
 } from "../features/chat/chatSlice";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Input } from "../components/ui/input";
@@ -14,7 +15,7 @@ import { Send, Search } from "lucide-react";
 import { cn } from "../utils/cn";
 import api from "../api/axios";
 import { Skeleton } from "../components/ui/skeleton";
-import UserCard from "../components/user/UserCard";
+import SearchUserCard from "../components/user/SearchUserCard";
 
 const MessengerPage = () => {
   const dispatch = useDispatch();
@@ -127,7 +128,27 @@ const MessengerPage = () => {
       await api.post(`/messages/send/${receiverId}`, { content: newMessage });
     } catch (error) {
       console.error("Failed to send message", error);
-      // Có thể thêm logic để xử lý lỗi gửi tin nhắn (ví dụ: hiển thị icon lỗi bên cạnh tin nhắn)
+    }
+  };
+
+  const handleStartConversation = async (user) => {
+    try {
+      // Gọi API để tìm hoặc tạo cuộc trò chuyện mới
+      const { data: newConversation } = await api.post(
+        "/messages/findOrCreate",
+        {
+          receiverId: user._id,
+        }
+      );
+
+      dispatch(addOrUpdateConversation(newConversation));
+
+      handleSelectConversation(newConversation);
+
+      setSearchQuery("");
+      setSearchResults([]);
+    } catch (error) {
+      console.error("Error starting conversation:", error);
     }
   };
 
@@ -162,14 +183,11 @@ const MessengerPage = () => {
                 <Skeleton className="h-20 w-full rounded-lg" />
               ) : searchResults.length > 0 ? (
                 searchResults.map((user) => (
-                  // Cần tạo một phiên bản UserCard cho chat
-                  // Tạm thời hiển thị tên
-                  <div
+                  <SearchUserCard
                     key={user._id}
-                    className="p-2 hover:bg-secondary rounded-lg cursor-pointer"
-                  >
-                    {user.username}
-                  </div>
+                    user={user}
+                    onSelect={handleStartConversation} // Truyền hàm xử lý vào
+                  />
                 ))
               ) : (
                 <p className="text-center text-sm text-muted-foreground p-4">
