@@ -169,8 +169,17 @@ const addComment = asyncHandler(async (req, res) => {
       });
       await notification.populate('sender', 'username avatar');
       
+      let notificationToSend = notification.toObject();
+
+      // ẩn danh cho anonymous
+      if (isAnonymous) {
+          notificationToSend.sender.username = "An Anonymous Wanderer";
+          notificationToSend.sender.avatar = "default_anonymous_avatar_url"; // Link tới một ảnh avatar mặc định cho ẩn danh
+      }
+
       const sendNotification = req.app.locals.sendNotification;
-      sendNotification(post.author.toString(), notification);
+      // gửi đi bản sao đã được chỉnh sửa
+      sendNotification(post.author.toString(), notificationToSend);
   }
 
   await post.save();

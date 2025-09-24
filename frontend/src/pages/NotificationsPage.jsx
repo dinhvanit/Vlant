@@ -13,6 +13,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
 const NotificationItem = ({ notif }) => {
   let message, linkTo, Icon;
 
+  const isSenderAnonymous = notif.sender.username === "An Anonymous Wanderer";
+
   switch (notif.type) {
     case 'friend_request_accepted':
       message = <><strong>{notif.sender.username}</strong> accepted your friend request.</>;

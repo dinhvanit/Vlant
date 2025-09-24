@@ -10,6 +10,7 @@ const notificationSchema = new mongoose.Schema({
   },
   post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' }, // Chỉ cần cho 'like' và 'comment'
   isRead: { type: Boolean, default: false },
+  isActionAnonymous: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const Notification = mongoose.model('Notification', notificationSchema);
