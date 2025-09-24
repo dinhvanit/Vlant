@@ -240,6 +240,30 @@ const getFriends = asyncHandler(async (req, res) => {
   res.json(user.friends);
 });
 
+// @desc    Tìm kiếm trong danh sách bạn bè của người dùng hiện tại
+// @route   GET /api/users/friends/search?q=query
+// @access  Private
+const searchFriends = asyncHandler(async (req, res) => {
+  const query = req.query.q;
+  
+  if (!query) {
+    return res.json([]);
+  }
+
+  const currentUser = await User.findById(req.user._id).populate({
+    path: 'friends',
+    select: 'username avatar bio',
+    match: { username: { $regex: query, $options: 'i' } } 
+  });
+
+  if (!currentUser) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  res.json(currentUser.friends);
+});
+
 export {
   getUserProfile,
   sendFriendRequest,
@@ -249,4 +273,5 @@ export {
   getFriendSuggestions,
   getFriendRequests,
   getFriends,
+  searchFriends,
 };

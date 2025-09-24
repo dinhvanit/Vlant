@@ -8,13 +8,15 @@ import {
     searchUsers,
     getFriendSuggestions,
     getFriendRequests,
-    getFriends
+    getFriends,
+    searchFriends
 } from '../controllers/user.controller.js';
 
 const router = express.Router();
 
 router.use(protect);
 
+router.get('/friends/search', searchFriends);
 router.get('/search/users', searchUsers);
 router.get('/suggestions/all', getFriendSuggestions);
 

@@ -35,6 +35,8 @@ import {
   UserMinus,
 } from "lucide-react";
 
+import api from "../api/axios";
+
 import FriendCard from "../components/user/FriendCard";
 
 const ProfilePage = () => {
@@ -91,6 +93,22 @@ const ProfilePage = () => {
     }
   };
 
+  const handleSendMessage = async () => {
+    if (!profile) return;
+    try {
+      // Gọi API để tìm hoặc tạo conversation
+      const { data: conversation } = await api.post("/messages/findOrCreate", {
+        receiverId: profile._id,
+      });
+
+      // Điều hướng đến trang messages, truyền conversation data qua state
+      navigate("/messages", { state: { newConversation: conversation } });
+    } catch (err) {
+      console.error("Failed to start conversation", err);
+      alert("Could not start a conversation. Please try again.");
+    }
+  };
+
   // TRẠNG THÁI LOADING
   if (status === "loading" || status === "idle") {
     return (
@@ -129,7 +147,11 @@ const ProfilePage = () => {
       case "friends":
         return (
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button variant="secondary" className="rounded-full px-6">
+            <Button
+              onClick={handleSendMessage}
+              variant="secondary"
+              className="rounded-full px-6"
+            >
               <MessageCircle className="w-4 h-4 mr-2" /> Message
             </Button>
             <Button

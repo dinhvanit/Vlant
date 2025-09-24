@@ -13,7 +13,7 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Switch } from "./ui/switch"
 import { Label } from "./ui/label"
-import { Heart, MessageCircle, Bookmark, Eye, Send } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, Eye, Send, User} from "lucide-react";
 
 import { cn } from "../utils/cn";
 

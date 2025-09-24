@@ -84,4 +84,35 @@ const getConversations = asyncHandler(async (req, res) => {
     res.json(conversations);
 });
 
-export { sendMessage, getMessages, getConversations };
+// @desc    Tìm hoặc tạo một cuộc trò chuyện với người dùng khác
+// @route   POST /api/conversations/findOrCreate
+// @access  Private
+const findOrCreateConversation = asyncHandler(async (req, res) => {
+    const { receiverId } = req.body;
+    const senderId = req.user._id;
+
+    if (!receiverId) {
+        res.status(400);
+        throw new Error("Receiver ID is required.");
+    }
+
+    let conversation = await Conversation.findOne({
+        participants: { $all: [senderId, receiverId] },
+    }).populate({
+        path: 'participants',
+        select: 'username avatar'
+    });
+
+    if (!conversation) {
+        conversation = await Conversation.create({ participants: [senderId, receiverId] });
+        // Populate lại để có đủ thông tin
+        conversation = await conversation.populate({
+            path: 'participants',
+            select: 'username avatar'
+        });
+    }
+    
+    res.status(200).json(conversation);
+});
+
+export { sendMessage, getMessages, getConversations, findOrCreateConversation };
