@@ -12,8 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
 
 const NotificationItem = ({ notif }) => {
   let message, linkTo, Icon;
-
-  const isSenderAnonymous = notif.sender.username === "An Anonymous Wanderer";
+  const isSenderAnonymous = notif.isActionAnonymous; // Đọc trực tiếp từ cờ isActionAnonymous
 
   switch (notif.type) {
     case 'friend_request_accepted':
@@ -36,24 +35,31 @@ const NotificationItem = ({ notif }) => {
       linkTo = "/";
       Icon = Bell;
   }
-
-  return (
-    <Link to={linkTo}>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="p-3 flex items-center gap-4 rounded-lg hover:bg-secondary transition-colors"
-      >
-        <Avatar className="w-10 h-10">
-          <AvatarImage src={notif.sender.avatar} />
-          <AvatarFallback>{notif.sender.username?.[0]}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 text-sm">{message}</div>
-        {!notif.isRead && <div className="w-2 h-2 bg-primary rounded-full" />}
-      </motion.div>
-    </Link>
+  
+  const content = (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className={`p-3 flex items-center gap-4 rounded-lg transition-colors ${
+        !notif.isRead ? 'bg-primary/10' : ''
+      } hover:bg-secondary`}
+    >
+      <Avatar className="w-10 h-10">
+        <AvatarImage src={isSenderAnonymous ? undefined : notif.sender.avatar} />
+        <AvatarFallback>{notif.sender.username?.[0]}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1 text-sm">{message}</div>
+      {!notif.isRead && <div className="w-2 h-2 bg-primary rounded-full shrink-0" />}
+    </motion.div>
   );
-};
+
+  // Nếu là thông báo ẩn danh, không cho click vào
+  if (isSenderAnonymous) {
+    return <div className="cursor-default">{content}</div>;
+  }
+
+  return <Link to={linkTo}>{content}</Link>;
+}
 
 
 const NotificationsPage = () => {

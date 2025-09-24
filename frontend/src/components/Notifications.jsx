@@ -1,73 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { useSocket } from '../context/SocketContext';
-import { Bell, UserPlus } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
-import api from '../api/axios'; // Để fetch các thông báo cũ
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { fetchNotifications, resetUnreadCount, addNotification } from '../features/notification/notificationSlice';
+import api from '../api/axios';
 
-const Notifications = () => {
-  const socket = useSocket();
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+// Component con để render một dòng thông báo
+const NotificationItem = ({ notif, closePopover }) => {
+  const navigate = useNavigate();
+  const isSenderAnonymous = notif.isActionAnonymous;
+  let message;
 
-  // Fetch các thông báo cũ khi component mount
-  useEffect(() => {
-    const fetchOldNotifications = async () => {
-      try {
-        const { data } = await api.get('/notifications');
-        setNotifications(data);
-        setUnreadCount(data.filter(n => !n.isRead).length);
-      } catch (error) {
-        console.error("Failed to fetch notifications", error);
-      }
-    };
-    fetchOldNotifications();
-  }, []);
+  switch (notif.type) {
+    case 'friend_request_accepted':
+      message = <><strong>{notif.sender.username}</strong> accepted your friend request.</>;
+      break;
+    case 'like':
+      message = <><strong>{notif.sender.username}</strong> liked your lantern.</>;
+      break;
+    case 'comment':
+      message = <><strong>{notif.sender.username}</strong> commented on your lantern.</>;
+      break;
+    case 'friend_request':
+      message = <><strong>{notif.sender.username}</strong> sent you a friend request.</>;
+      break;
+    default:
+      message = "You have a new notification.";
+  }
 
-  // Lắng nghe các thông báo mới từ Socket.IO
-  useEffect(() => {
-    if (socket) {
-      socket.on('getNotification', (newNotification) => {
-        // Giả sử server gửi về { senderName, type }
-        const formattedNotif = {
-          _id: Date.now(), // Tạo ID tạm thời
-          sender: { username: newNotification.senderName },
-          type: newNotification.type,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-        };
-        setNotifications((prev) => [formattedNotif, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-      });
-      
-      // Cleanup listener
-      return () => socket.off('getNotification');
+  const handleClick = () => {
+    if (isSenderAnonymous) return; // Không làm gì nếu là ẩn danh
+
+    // Điều hướng dựa trên loại thông báo
+    if (notif.type === 'friend_request' || notif.type === 'friend_request_accepted') {
+        navigate(`/notifications?tab=requests`); // Chuyển đến tab requests
+    } else if (notif.post) {
+        // Sau này sẽ mở PostDetailModal
+        console.log("Navigate to post:", notif.post);
     }
-  }, [socket]);
-  
-  const handleOpenChange = (isOpen) => {
-    if (isOpen && unreadCount > 0) {
-      // Khi mở popover, đánh dấu đã đọc
-      api.put('/notifications/read');
-      setUnreadCount(0);
-      // Có thể cập nhật isRead trên state local nếu muốn
-    }
-  };
-  
-  const getNotificationMessage = (notif) => {
-      switch (notif.type) {
-          case 'friend_request':
-              return <p><span className="font-bold">{notif.sender.username}</span> sent you a friend request.</p>;
-          case 'like':
-              return <p><span className="font-bold">{notif.sender.username}</span> liked your lantern.</p>;
-          // Thêm các case khác
-          default:
-              return <p>You have a new notification.</p>;
-      }
+    closePopover(); // Đóng popover sau khi click
   }
 
   return (
-    <Popover onOpenChange={handleOpenChange}>
+    <div 
+      onClick={handleClick}
+      className={`p-2 flex items-center gap-3 rounded-lg transition-colors ${!notif.isRead ? 'bg-primary/10' : ''} ${!isSenderAnonymous && 'cursor-pointer hover:bg-secondary'}`}
+    >
+      <Avatar className="w-8 h-8">
+        <AvatarImage src={isSenderAnonymous ? undefined : notif.sender.avatar} />
+        <AvatarFallback>{notif.sender.username?.[0]}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1 text-sm">{message}</div>
+    </div>
+  );
+};
+
+
+const Notifications = () => {
+  const dispatch = useDispatch();
+  const socket = useSocket();
+  const [isOpen, setIsOpen] = useState(false);
+  
+  // Đọc state trực tiếp từ Redux
+  const { notifications, unreadCount, status } = useSelector((state) => state.notifications);
+
+  // Fetch dữ liệu lần đầu
+  useEffect(() => {
+    if (status === 'idle') {
+      dispatch(fetchNotifications());
+    }
+  }, [status, dispatch]);
+  
+  // Xử lý khi mở popover
+  const handleOpenChange = (open) => {
+    setIsOpen(open);
+    if (open && unreadCount > 0) {
+      // Gọi API để đánh dấu đã đọc ở backend
+      api.put('/notifications/read');
+      // Cập nhật ngay lập tức UI
+      dispatch(resetUnreadCount());
+    }
+  };
+
+  return (
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative rounded-full">
           <Bell className="w-5 h-5" />
@@ -79,20 +99,18 @@ const Notifications = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80">
-        <div className="p-4">
-            <h4 className="font-medium leading-none mb-4">Notifications</h4>
-            <div className="space-y-2">
-                {notifications.length > 0 ? (
-                    notifications.map(notif => (
-                        <div key={notif._id} className="text-sm">
-                            {getNotificationMessage(notif)}
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-sm text-muted-foreground">No new notifications.</p>
-                )}
-            </div>
+      <PopoverContent className="w-80 p-0">
+        <div className="p-3 border-b border-border">
+            <h4 className="font-medium leading-none">Notifications</h4>
+        </div>
+        <div className="max-h-80 overflow-y-auto p-2">
+            {notifications.length > 0 ? (
+                notifications.slice(0, 7).map(notif => ( // Chỉ hiển thị 7 thông báo mới nhất
+                    <NotificationItem key={notif._id} notif={notif} closePopover={() => setIsOpen(false)} />
+                ))
+            ) : (
+                <p className="p-8 text-center text-sm text-muted-foreground">You have no notifications yet.</p>
+            )}
         </div>
       </PopoverContent>
     </Popover>

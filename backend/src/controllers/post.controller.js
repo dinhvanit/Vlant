@@ -157,35 +157,30 @@ const addComment = asyncHandler(async (req, res) => {
     author: req.user._id,
   });
 
-  // Thêm ID của bình luận mới vào mảng 'comments' của bài viết
   post.comments.push(comment._id);
+  await post.save();
 
+  // --- LOGIC TẠO THÔNG BÁO TỐI ƯU ---
   if (post.author.toString() !== req.user._id.toString()) {
       const notification = await Notification.create({
           recipient: post.author,
           sender: req.user._id,
           type: 'comment',
           post: post._id,
+          // lưu trực tiếp trạng thái ẩn danh của cmt
+          isActionAnonymous: !!isAnonymous, 
       });
-      await notification.populate('sender', 'username avatar');
+
+      // Populate và gửi đi
+      const populatedNotif = await Notification.findById(notification._id)
+          .populate('sender', 'username avatar');
       
-      let notificationToSend = notification.toObject();
-
-      // ẩn danh cho anonymous
-      if (isAnonymous) {
-          notificationToSend.sender.username = "An Anonymous Wanderer";
-          notificationToSend.sender.avatar = "default_anonymous_avatar_url"; // Link tới một ảnh avatar mặc định cho ẩn danh
-      }
-
       const sendNotification = req.app.locals.sendNotification;
-      // gửi đi bản sao đã được chỉnh sửa
-      sendNotification(post.author.toString(), notificationToSend);
+      sendNotification(post.author.toString(), populatedNotif);
   }
-
-  await post.save();
   
+  // Trả về comment vừa tạo
   const newComment = await Comment.findById(comment._id).populate('author', 'username avatar');
-  
   res.status(201).json(newComment);
 });
 
