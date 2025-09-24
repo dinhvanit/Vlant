@@ -17,6 +17,8 @@ import api from "../api/axios";
 import { Skeleton } from "../components/ui/skeleton";
 import SearchUserCard from "../components/user/SearchUserCard";
 
+import { format, isToday, isYesterday, formatDistanceToNow } from "date-fns";
+
 const MessengerPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -156,6 +158,18 @@ const MessengerPage = () => {
     (p) => p._id !== userInfo._id
   );
 
+  const formatMessageTimestamp = (timestamp) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    if (isToday(date)) {
+      return format(date, "p"); // Ví dụ: "10:30 PM"
+    }
+    if (isYesterday(date)) {
+      return `Yesterday at ${format(date, "p")}`; // Ví dụ: "Yesterday at 9:15 AM"
+    }
+    return formatDistanceToNow(date, { addSuffix: true });
+  };
+
   return (
     <div className="h-[calc(100vh-4rem)] flex border border-border rounded-2xl bg-card overflow-hidden">
       {/* Cột trái */}
@@ -252,28 +266,52 @@ const MessengerPage = () => {
               </h3>
             </div>
 
-            <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-secondary/20">
-              {messagesStatus === "loading" && <p>Loading messages...</p>}
+            <div className="flex-1 p-6 overflow-y-auto space-y-2 bg-secondary/20">
               {messagesStatus === "succeeded" &&
                 messages.map((msg, index) => (
                   <div
                     key={index}
                     className={cn(
-                      "flex",
+                      "flex items-end gap-2", // Dùng items-end để avatar thẳng hàng với đáy tin nhắn
                       msg.senderId === userInfo._id
                         ? "justify-end"
                         : "justify-start"
                     )}
                   >
+                    {/* --- THÊM LOGIC HIỂN THỊ AVATAR & THỜI GIAN --- */}
+
+                    {/* Hiển thị avatar cho người nhận */}
+                    {msg.senderId !== userInfo._id && (
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={otherUserInSelectedConv?.avatar} />
+                        <AvatarFallback>
+                          {otherUserInSelectedConv?.username[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+
                     <div
                       className={cn(
-                        "max-w-xs lg:max-w-md px-4 py-2 rounded-2xl",
+                        "flex flex-col",
                         msg.senderId === userInfo._id
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-card border"
+                          ? "items-end"
+                          : "items-start"
                       )}
                     >
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                      <div
+                        className={cn(
+                          "max-w-xs lg:max-w-md px-4 py-2 rounded-2xl",
+                          msg.senderId === userInfo._id
+                            ? "bg-primary text-primary-foreground rounded-br-none"
+                            : "bg-card border rounded-bl-none"
+                        )}
+                      >
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                      {/* Hiển thị thời gian */}
+                      <span className="text-xs text-muted-foreground mt-1 px-1">
+                        {formatMessageTimestamp(msg.createdAt)}
+                      </span>
                     </div>
                   </div>
                 ))}
