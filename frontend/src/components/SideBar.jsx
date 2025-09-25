@@ -8,12 +8,13 @@ import {
   Plus,
   LogOut,
   Search,
+  Compass,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { logout } from "../features/auth/authSlice"; // Bạn sẽ cần action này
 import { useDispatch } from "react-redux";
-import Notifications from './Notifications';
+import Notifications from "./Notifications";
 
 const Sidebar = ({ userInfo, onOpenCreateModal }) => {
   const dispatch = useDispatch();
@@ -33,11 +34,7 @@ const Sidebar = ({ userInfo, onOpenCreateModal }) => {
       icon: MessageCircle,
       path: "/messages",
     },
-    { id: "explore", 
-      label: "Explore", 
-      icon: Search, 
-      path: "/explore" 
-    },
+    { id: "explore", label: "Explore", icon: Search, path: "/explore" },
     {
       id: "notifications",
       label: "Notifications",
@@ -50,6 +47,7 @@ const Sidebar = ({ userInfo, onOpenCreateModal }) => {
       icon: User,
       path: `/profile/${userInfo?.username}`,
     },
+    { id: "matching", label: "Match", icon: Compass, path: "/matching" },
   ];
 
   return (

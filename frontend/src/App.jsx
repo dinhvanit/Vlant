@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import ExplorePage from './pages/ExplorePage';
 import NotificationsPage from './pages/NotificationsPage';
 import MessengerPage from './pages/MessengerPage';
+import MatchingPage from './pages/MatchingPage';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -52,6 +53,7 @@ const App = () => {
         <Route path="profile/:username" element={<ProfilePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="messages" element={<MessengerPage />} />
+        <Route path="matching" element={<MatchingPage />} />
       </Route>
       {/* Ví dụ: <Route path="/settings" element={<SettingsPage />} /> */}
     </Routes>

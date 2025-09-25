@@ -41,6 +41,8 @@ const MessengerPage = () => {
 
   useEffect(() => {
     const newConvFromNav = location.state?.newConversation;
+    const newConvIdFromMatch = location.state?.newConversationId;
+
     if (newConvFromNav) {
       const existingConv = conversations.find(
         (c) => c._id === newConvFromNav._id
@@ -51,6 +53,31 @@ const MessengerPage = () => {
         });
       } else {
         handleSelectConversation(newConvFromNav);
+      }
+    } else if (newConvIdFromMatch) {
+      // Nếu có ID từ trang match
+      const selectMatchedConversation = (allConversations) => {
+        const matchedConv = allConversations.find(
+          (c) => c._id === newConvIdFromMatch
+        );
+        if (matchedConv) {
+          handleSelectConversation(matchedConv);
+        }
+      };
+
+      // Kiểm tra xem cuộc trò chuyện đã có trong state chưa
+      const existingConv = conversations.find(
+        (c) => c._id === newConvIdFromMatch
+      );
+      if (existingConv) {
+        selectMatchedConversation(conversations);
+      } else {
+        // Nếu chưa có, fetch lại toàn bộ danh sách rồi chọn
+        dispatch(fetchConversations()).then((action) => {
+          if (action.payload) {
+            selectMatchedConversation(action.payload);
+          }
+        });
       }
     }
   }, [location.state, conversations, dispatch]);
