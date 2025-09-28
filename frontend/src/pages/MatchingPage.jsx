@@ -1,38 +1,36 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
-import { useSocket } from '../context/SocketContext';
-import { Loader2 } from 'lucide-react'; // Icon xoay tròn
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import { useSocket } from "../context/SocketContext";
+import { Loader2, Users } from "lucide-react";
+import { Button } from "../components/ui/button";
 
 const MatchingPage = () => {
   const navigate = useNavigate();
   const socket = useSocket();
   const { userInfo } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    // Chỉ chạy logic nếu có socket và user đã đăng nhập
-    if (socket && userInfo) {
-      // Gửi yêu cầu tham gia hàng đợi lên server
-      console.log('Emitting joinAnonymousQueue');
-      socket.emit('joinAnonymousQueue', userInfo._id);
+  const [stats, setStats] = useState({ onlineCount: 0, queueCount: 0 });
 
-      // Lắng nghe sự kiện 'matchFound' từ server
-      socket.on('matchFound', ({ conversationId }) => {
-        console.log('Match found! Conversation ID:', conversationId);
-        // Khi tìm thấy, điều hướng đến trang Messenger và truyền ID cuộc trò chuyện
-        // `replace: true` để người dùng không thể bấm "Back" quay lại trang chờ
-        navigate('/messages', { 
-          replace: true, 
-          state: { newConversationId: conversationId } 
-        });
+  useEffect(() => {
+    if (socket && userInfo) {
+      // Gửi yêu cầu tìm kiếm
+      socket.emit("find_match", userInfo._id);
+
+      // Lắng nghe cập nhật thống kê
+      socket.on("statsUpdate", (data) => setStats(data));
+      // Lắng nghe khi tìm thấy cặp
+      socket.on("match_found", ({ conversationId }) => {
+        // Điều hướng đến trang chat ẩn danh mới
+        navigate(`/anonymous-chat/${conversationId}`, { replace: true });
       });
 
-      // Cleanup function: Rời khỏi hàng đợi khi component unmount
+      // Cleanup khi rời khỏi trang
       return () => {
-        console.log('Emitting leaveAnonymousQueue');
-        socket.emit('leaveAnonymousQueue');
-        socket.off('matchFound'); // Gỡ bỏ listener để tránh memory leak
+        socket.emit("leave_match");
+        socket.off("statsUpdate");
+        socket.off("match_found");
       };
     }
   }, [socket, userInfo, navigate]);
@@ -46,23 +44,33 @@ const MatchingPage = () => {
       {/* Animation Lồng đèn đang bay lên */}
       <motion.div
         animate={{ y: [0, -40, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         className="text-8xl mb-8"
       >
         🏮
       </motion.div>
-
       <h1 className="text-3xl font-bold text-primary mb-4">
-        Releasing Your Lantern...
+        Finding a Connection...
       </h1>
       <p className="text-lg text-muted-foreground max-w-md mb-8">
-        Waiting for another soul to catch your light in the vast night sky. Please wait a moment.
+        Your lantern is drifting, seeking another light in the night sky.
       </p>
-
-      <div className="flex items-center gap-3 text-foreground">
-        <Loader2 className="w-6 h-6 animate-spin" />
-        <span>Searching for a connection...</span>
+      <div className="flex items-center gap-6 text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5" /> {stats.onlineCount} Wanderers online
+        </div>
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-5 h-5 animate-spin" /> {stats.queueCount}{" "}
+          Looking for a match
+        </div>
       </div>
+      <Button
+        variant="outline"
+        onClick={() => navigate(-1)}
+        className="mt-12 rounded-full"
+      >
+        Cancel Search
+      </Button>
     </motion.div>
   );
 };

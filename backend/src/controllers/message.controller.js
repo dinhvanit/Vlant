@@ -69,7 +69,7 @@ const getMessages = asyncHandler(async (req, res) => {
 const getConversations = asyncHandler(async (req, res) => {
     const currentUserId = req.user._id;
 
-    const conversations = await Conversation.find({ participants: currentUserId })
+    const conversations = await Conversation.find({ participants: currentUserId, isAnonymousMatch: { $ne: true }  })
         .populate({
             path: 'participants',
             select: 'username avatar',
@@ -115,4 +115,32 @@ const findOrCreateConversation = asyncHandler(async (req, res) => {
     res.status(200).json(conversation);
 });
 
-export { sendMessage, getMessages, getConversations, findOrCreateConversation };
+// @desc    Lấy thông tin và lịch sử tin nhắn của một cuộc trò chuyện
+// @route   GET /api/messages/conversation/:conversationId
+// @access  Private
+const getConversationDetails = asyncHandler(async (req, res) => {
+    const { conversationId } = req.params;
+    const currentUserId = req.user._id;
+
+    const conversation = await Conversation.findById(conversationId)
+        .populate("messages")
+        .populate({
+            path: 'participants',
+            select: 'username avatar'
+        });
+
+    if (!conversation || !conversation.participants.some(p => p._id.equals(currentUserId))) {
+        res.status(404);
+        throw new Error("Conversation not found or you are not a participant.");
+    }
+    
+    // Lấy thông tin của người kia
+    const otherParticipant = conversation.participants.find(p => !p._id.equals(currentUserId));
+    
+    res.json({
+        messages: conversation.messages,
+        otherParticipant: conversation.isAnonymousMatch ? { username: "Stranger", avatar: null } : otherParticipant,
+    });
+});
+
+export { sendMessage, getMessages, getConversations, findOrCreateConversation, getConversationDetails };

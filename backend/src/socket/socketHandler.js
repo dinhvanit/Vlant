@@ -1,142 +1,128 @@
-import Conversation from "../models/Conversation.model.js";
-// Biến để lưu trữ danh sách người dùng online
-let onlineUsers = [];
+import Conversation from '../models/Conversation.model.js';
+import Message from '../models/Message.model.js';
+import User from '../models/User.model.js';
 
-// Hangf doi cho ghep cap
+// --- Biến cục bộ để quản lý trạng thái real-time ---
+let onlineUsers = [];
 let anonymousQueue = [];
 
+// --- Các hàm helper ---
 const addUser = (userId, socketId) => {
-  // Chỉ thêm nếu user chưa tồn tại trong danh sách
-  if (userId && !onlineUsers.some((user) => user.userId === userId)) {
+  if (userId && !onlineUsers.some(user => user.userId === userId)) {
     onlineUsers.push({ userId, socketId });
   }
 };
 
 const removeUser = (socketId) => {
-  onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
+  onlineUsers = onlineUsers.filter(user => user.socketId !== socketId);
 };
 
 const getUser = (userId) => {
-  return onlineUsers.find((user) => user.userId === userId);
+  return onlineUsers.find(user => user.userId === userId);
 };
 
 const addUserToQueue = (userId, socketId) => {
-  if (userId && !anonymousQueue.some((user) => user.userId === userId)) {
+  if (userId && !anonymousQueue.some(user => user.userId === userId)) {
     anonymousQueue.push({ userId, socketId });
   }
 };
 
 const removeUserFromQueue = (socketId) => {
-  anonymousQueue = anonymousQueue.filter((user) => user.socketId !== socketId);
+  anonymousQueue = anonymousQueue.filter(user => user.socketId !== socketId);
 };
 
-// Hàm chính để khởi tạo và xử lý logic Socket.IO
+
+// --- Hàm xử lý chính ---
 const socketHandler = (io) => {
+  
+  // Gửi cập nhật thống kê định kỳ
   setInterval(() => {
-    io.emit("statsUpdate", {
+    io.emit('statsUpdate', {
       onlineCount: onlineUsers.length,
       queueCount: anonymousQueue.length,
     });
   }, 2000);
 
-  io.on("connection", (socket) => {
+  // Xử lý khi có một client mới kết nối
+  io.on('connection', (socket) => {
     console.log(`Socket connected: ${socket.id}`);
 
-    // Lắng nghe sự kiện 'addUser' từ client
-    socket.on("addUser", (userId) => {
+    // === QUẢN LÝ KẾT NỐI ===
+    socket.on('addUser', (userId) => {
       addUser(userId, socket.id);
-      // Gửi lại danh sách user online cho tất cả client
-      io.emit("getUsers", onlineUsers);
+      io.emit('getUsers', onlineUsers);
     });
 
-    // Lắng nghe sự kiện ngắt kết nối
-    socket.on("disconnect", () => {
+    socket.on('disconnect', () => {
       console.log(`Socket disconnected: ${socket.id}`);
       removeUser(socket.id);
-      io.emit("getUsers", onlineUsers);
+      removeUserFromQueue(socket.id); // Quan trọng: xóa khỏi hàng đợi khi disconnect
+      io.emit('getUsers', onlineUsers);
     });
-
-    socket.on("sendMessage", ({ senderId, receiverId, content }) => {
-      const receiver = getUser(receiverId);
-      if (receiver) {
-        // Gửi sự kiện 'newMessage' đến người nhận
-        io.to(receiver.socketId).emit("newMessage", {
-          senderId,
-          content,
-          createdAt: new Date().toISOString(), // Gửi kèm thời gian
-        });
-      }
-    });
-
-    // SỰ KIỆN MỚI: THAM GIA HÀNG ĐỢI GHÉP CẶP
-    socket.on("joinAnonymousQueue", (userId) => {
-      console.log(`User ${userId} joined anonymous queue.`);
+    
+    // === LOGIC GHÉP CẶP ẨN DANH ===
+    socket.on('find_match', (userId) => {
       addUserToQueue(userId, socket.id);
 
-      // KIỂM TRA VÀ THỰC HIỆN GHÉP CẶP
       if (anonymousQueue.length >= 2) {
-        const user1 = anonymousQueue.shift(); // Lấy người đầu tiên
-        const user2 = anonymousQueue.shift(); // Lấy người thứ hai
-
-        console.log(`Matching ${user1.userId} and ${user2.userId}`);
-
-        // Dùng async IIFE (Immediately Invoked Function Expression) để xử lý bất đồng bộ
+        const user1 = anonymousQueue.shift();
+        const user2 = anonymousQueue.shift();
+        
         (async () => {
           try {
-            // Tạo một cuộc trò chuyện mới trong DB
-            const newConversation = await Conversation.create({
+            const conversation = await Conversation.create({
               participants: [user1.userId, user2.userId],
-              // Có thể thêm cờ để đánh dấu đây là cuộc trò chuyện ẩn danh
-              // isAnonymousMatch: true
+              isAnonymousMatch: true,
             });
 
-            // Gửi sự kiện 'matchFound' đến cả hai người dùng
-            // Gửi kèm ID cuộc trò chuyện mới
-            io.to(user1.socketId).emit("matchFound", {
-              conversationId: newConversation._id,
-            });
-            io.to(user2.socketId).emit("matchFound", {
-              conversationId: newConversation._id,
-            });
-          } catch (error) {
-            console.error("Error creating anonymous conversation:", error);
-            // Có thể emit một sự kiện lỗi về cho client nếu cần
-          }
+            io.to(user1.socketId).emit('match_found', { conversationId: conversation._id });
+            io.to(user2.socketId).emit('match_found', { conversationId: conversation._id });
+          } catch (error) { console.error("Error in matching:", error); }
         })();
       }
     });
 
-    // SỰ KIỆN MỚI: RỜI KHỎI HÀNG ĐỢI
-    socket.on("leaveAnonymousQueue", () => {
+    socket.on('leave_match', () => {
       removeUserFromQueue(socket.id);
-      console.log(`User ${socket.id} left anonymous queue.`);
     });
 
-    // Cập nhật sự kiện 'disconnect' để xóa user khỏi hàng đợi nếu họ ngắt kết nối
-    socket.on("disconnect", () => {
-      console.log(`Socket disconnected: ${socket.id}`);
-      removeUser(socket.id);
-      removeUserFromQueue(socket.id); // <-- THÊM DÒNG NÀY
-      io.emit("getUsers", onlineUsers);
+    // === LOGIC CHAT (DÙNG CHUNG) ===
+    socket.on('join_chat_room', (roomId) => {
+        socket.join(roomId);
+        console.log(`Socket ${socket.id} joined room ${roomId}`);
+    });
+    
+    socket.on('send_message', async ({ conversationId, senderId, content }) => {
+        try {
+            const conversation = await Conversation.findById(conversationId);
+            if (!conversation) return;
+
+            const receiverId = conversation.participants.find(p => p.toString() !== senderId);
+            if (!receiverId) return;
+
+            const newMessage = new Message({ senderId, receiverId, content });
+            
+            conversation.messages.push(newMessage._id);
+            await Promise.all([conversation.save(), newMessage.save()]);
+
+            // Gửi tin nhắn đến tất cả client trong phòng đó (bao gồm cả người gửi để xác nhận)
+            io.to(conversationId).emit('new_message', newMessage.toObject());
+        } catch (error) {
+            console.error("Error saving message:", error);
+        }
     });
   });
-
-  // Trả về một hàm tiện ích để có thể gửi sự kiện từ controller
+  
+  // Hàm tiện ích để controller có thể gửi thông báo
   const sendNotification = (receiverId, notification) => {
     const user = getUser(receiverId);
     if (user) {
-      io.to(user.socketId).emit("getNotification", notification);
+      io.to(user.socketId).emit('new_notification', notification);
     }
   };
 
-  const sendMessageRealtime = (receiverId, message) => {
-    const user = getUser(receiverId);
-    if (user) {
-      io.to(user.socketId).emit("newMessage", message);
-    }
-  };
-
-  return { sendNotification, sendMessageRealtime };
+  // Trả về các hàm mà controller cần
+  return { sendNotification };
 };
 
 export default socketHandler;
