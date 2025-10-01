@@ -177,7 +177,7 @@ Bạn sẽ cần mở hai cửa sổ terminal riêng biệt để chạy đồng
 ## 🌳 Cấu trúc dự án
 
 ### Backend
-
+```
 backend/
 ├── node_modules/ # Thư mục chứa các thư viện đã cài đặt
 ├── src/ # Thư mục chứa toàn bộ mã nguồn của server
@@ -223,9 +223,11 @@ backend/
 ├── .gitignore # Các file và thư mục mà Git sẽ bỏ qua
 ├── package.json # Thông tin dự án và danh sách các dependency
 └── yarn.lock # "Khóa" phiên bản của các dependency
+```
 
 ### Frontend
 
+```
 frontend/
 ├── node_modules/
 ├── public/ # Các file tĩnh (favicon, logo...)
@@ -312,5 +314,6 @@ frontend/
 ├── postcss.config.js # Cấu hình PostCSS (cho Tailwind)
 ├── tailwind.config.js # Cấu hình Tailwind CSS
 └── vite.config.js # Cấu hình Vite (proxy, port...)
+```
 
 ## 📜 Giấy phép
