@@ -83,8 +83,8 @@ const AnonymousChatPage = () => {
   };
   
   return (
-    <div className="h-screen w-screen bg-background flex flex-col">
-      <header className="p-4 border-b border-border flex justify-between items-center">
+    <div className="h-full flex flex-col border border-border rounded-2xl bg-card overflow-hidden">
+      <header className="p-4 border-b border-border flex justify-between items-center shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
             <User className="w-5 h-5 text-muted-foreground" />

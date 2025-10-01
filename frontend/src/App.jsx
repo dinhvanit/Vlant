@@ -45,10 +45,6 @@ const App = () => {
   // Nếu đã đăng nhập hoặc là guest -> Hiển thị ứng dụng chính với cấu trúc Route lồng nhau
   return (
     <Routes>
-      <Route
-          path="/anonymous-chat/:conversationId"
-          element={<AnonymousChatPage />}
-        />
       <Route path="/" element={<MainLayout />}>
         {/* Router render vào Outlet như ổ cắm */}
 
@@ -59,7 +55,10 @@ const App = () => {
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="messages" element={<MessengerPage />} />
         <Route path="matching" element={<MatchingPage />} />
-        
+        <Route
+          path="/anonymous-chat/:conversationId"
+          element={<AnonymousChatPage />}
+        />
       </Route>
       {/* Ví dụ: <Route path="/settings" element={<SettingsPage />} /> */}
     </Routes>
